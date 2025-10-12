@@ -36,7 +36,7 @@ The `current` directory is a symbolic link to the latest tagged release.
 
 To reference a specific schema version in your application:
 ```
-https://github.com/waudbygroup/nmr-sample-schema/blob/main/v0.1.0/schema.json
+https://github.com/waudbygroup/nmr-sample-schema/blob/main/versions/v0.1.0/schema.json
 ```
 
 To always use the latest schema:
