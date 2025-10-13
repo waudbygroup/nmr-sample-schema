@@ -48,8 +48,8 @@ https://github.com/waudbygroup/nmr-sample-schema/blob/main/current/schema.json
 
 This schema is used by:
 
-- [sample-manager](http://github.com/waudbygroup/sample-manager) - Topspin-integrated sample manager
-- [nmr-samples](http://github.com/waudbygroup/nmr-samples) - Web-based sample manager
+- [topspin-samples](https://github.com/waudbygroup/topspin-samples) - Topspin-integrated sample manager
+- [nmr-samples](http://github.com/waudbygroup/nmr-samples) - Web-based sample manager, accessed at [waudbylab.org/nmr-samples](https://waudbylab.org/nmr-samples)
 
 ## Contributing
 
