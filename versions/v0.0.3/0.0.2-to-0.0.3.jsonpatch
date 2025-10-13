@@ -56,12 +56,12 @@
   { "op": "copy", "from": "/nmr_tube/SampleJet Rack ID", "path": "/nmr_tube/samplejet_rack_id" },
   { "op": "remove", "path": "/nmr_tube/SampleJet Rack ID" },
 
-  { "op": "copy", "from": "/Laboratory Reference", "path": "/laboratory_reference" },
+  { "op": "copy", "from": "/Laboratory Reference", "path": "/reference" },
   { "op": "remove", "path": "/Laboratory Reference" },
-  { "op": "copy", "from": "/laboratory_reference/Labbook Entry", "path": "/laboratory_reference/labbook_entry" },
-  { "op": "remove", "path": "/laboratory_reference/Labbook Entry" },
-  { "op": "copy", "from": "/laboratory_reference/Experiment ID", "path": "/laboratory_reference/sample_id" },
-  { "op": "remove", "path": "/laboratory_reference/Experiment ID" },
+  { "op": "copy", "from": "/reference/Labbook Entry", "path": "/reference/labbook_entry" },
+  { "op": "remove", "path": "/reference/Labbook Entry" },
+  { "op": "copy", "from": "/reference/Experiment ID", "path": "/reference/sample_id" },
+  { "op": "remove", "path": "/reference/Experiment ID" },
 
   { "op": "copy", "from": "/Notes", "path": "/notes" },
   { "op": "remove", "path": "/Notes" },
