@@ -1,6 +1,6 @@
 # NMR Sample Schema
 
-[![DOI](https://zenodo.org/badge/1074486326.svg)](https://doi.org/10.5281/zenodo.17427433)
+[![DOI](https://img.shields.io/badge/DOI-10.5281%2Fzenodo.17427433-blue)](https://doi.org/10.5281/zenodo.17427433)
 
 JSON schema definitions for standardising NMR sample metadata across different applications and workflows.
 
