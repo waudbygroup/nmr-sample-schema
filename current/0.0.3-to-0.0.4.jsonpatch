@@ -1,0 +1,3 @@
+[
+  { "op": "replace", "path": "/metadata/schema_version", "value": "0.0.4" }
+]

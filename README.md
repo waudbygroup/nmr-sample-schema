@@ -30,15 +30,16 @@ Schemas are organised by version, with each version in its own directory:
 ```
 v0.0.1/schema.json
 v0.0.2/schema.json
-v0.1.0/schema.json
+v0.0.3/schema.json
+v0.0.4/schema.json
 current/schema.json
 ```
 
-The `current` directory is a symbolic link to the latest tagged release.
+The `current` directory is a copy of the latest tagged release.
 
 To reference a specific schema version in your application:
 ```
-https://github.com/waudbygroup/nmr-sample-schema/blob/main/versions/v0.1.0/schema.json
+https://github.com/waudbygroup/nmr-sample-schema/blob/main/versions/v0.0.4/schema.json
 ```
 
 To always use the latest schema:
