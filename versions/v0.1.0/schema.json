@@ -69,7 +69,7 @@
                                 "description": "Molecule name"
                             },
                             "concentration_or_amount": {
-                                "title": "Concentration",
+                                "title": "Concentration/amount",
                                 "type": [
                                     "number",
                                     "null"
@@ -233,7 +233,7 @@
                         "100% D2O",
                         "CDCl3",
                         "D6-DMSO",
-                        "D4-Methanol",
+                        "D4-methanol",
                         "custom"
                     ],
                     "default": "",
@@ -271,6 +271,7 @@
                         "shigemi",
                         "shaped",
                         "coaxial",
+                        "J Young",
                         "zirconia rotor",
                         "silicon nitride rotor",
                         "sapphire rotor"
@@ -279,7 +280,7 @@
                     "description": "Type of NMR tube or rotor"
                 },
                 "sample_volume_uL": {
-                    "title": "Sample Volume (μL)",
+                    "title": "Sample volume (μL)",
                     "type": [
                         "number",
                         "null"
@@ -287,7 +288,7 @@
                     "description": "Sample volume (µL)"
                 },
                 "sample_mass_mg": {
-                    "title": "Sample Mass (mg)",
+                    "title": "Sample mass (mg)",
                     "type": [
                         "number",
                         "null"
@@ -295,7 +296,7 @@
                     "description": "Sample mass (mg)"
                 },
                 "rack_id": {
-                    "title": "SampleJet Rack ID",
+                    "title": "Rack ID",
                     "type": "string",
                     "description": "Identifier for SampleJet rack",
                     "default": ""
@@ -320,7 +321,7 @@
                     "description": "Local sample identifier"
                 },
                 "labbook_entry": {
-                    "title": "Labbook Entry",
+                    "title": "Labbook entry",
                     "type": "string",
                     "description": "Reference to laboratory notebook entry"
                 }
