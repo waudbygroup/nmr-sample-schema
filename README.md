@@ -28,13 +28,14 @@ The schema is currently in the 0.x phase, indicating that the domain model is st
 Schemas are organised by version, with each version in its own directory:
 
 ```
-v0.0.1/schema.json
-v0.0.2/schema.json
-v0.1.0/schema.json
+versions/v0.0.1/schema.json
+versions/v0.0.2/schema.json
+versions/v0.0.3/schema.json
+versions/v0.1.0/schema.json
 current/schema.json
 ```
 
-The `current` directory is a symbolic link to the latest tagged release.
+The `current` directory is a copy of the latest tagged release.
 
 To reference a specific schema version in your application:
 ```
@@ -45,6 +46,34 @@ To always use the latest schema:
 ```
 https://github.com/waudbygroup/nmr-sample-schema/blob/main/current/schema.json
 ```
+
+## Patching schema updates
+
+The file `current/patch.json` contains methods to update files to the latest schema version. This is written in a simple json DSL:
+
+```json
+[
+  {
+    "from_version": "0.0.2",
+    "operations": [
+      {"op": "move", "path": "/Users", "to": "/people/users"}
+    ]
+  }
+]
+```
+
+| Op | Fields | Behaviour |
+|---|---|---|
+| `set` | `path`, `value` | Set value at path. Creates intermediate objects if absent. |
+| `remove` | `path` | Remove key at path. No-op if absent. |
+| `rename_key` | `path`, `to` | Rename final key segment. No-op if key absent. Error if `to` already exists. |
+| `map` | `path`, `from`, `to` | If value at path equals `from`, replace with `to`. Otherwise no-op. |
+| `move` | `path`, `to` | Move value to a new path. Creates intermediates. No-op if absent |
+
+Paths: JSON Pointer with `*` wildcard for array elements. Missing intermediate paths → no-op (except `set` which creates them).
+
+
+
 
 ## Applications
 
