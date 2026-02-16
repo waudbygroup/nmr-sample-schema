@@ -82,6 +82,40 @@ This schema is used by:
 - [topspin-samples](https://github.com/waudbygroup/topspin-samples) - Topspin-integrated sample manager
 - [nmr-samples](http://github.com/waudbygroup/nmr-samples) - Web-based sample manager, accessed at [waudbylab.org/nmr-samples](https://waudbylab.org/nmr-samples)
 
+## Changelog
+
+### v0.1.0
+
+**Breaking Changes:**
+- Changed `sample.components[].concentration` to `concentration_or_amount` to better reflect that this field can represent either concentration or absolute amounts
+- Changed `nmr_tube.diameter` from enum of specific string values ("1.7 mm", "3 mm", "5 mm") to a numeric field (type: number) with min/max validation (0.1-10 mm)
+- Renamed `nmr_tube.samplejet_rack_id` to `nmr_tube.rack_id`
+- Removed `nmr_tube.samplejet_rack_position` field
+
+**New Features:**
+- Added `sample.physical_form` field to specify physical state (solution, aligned, solid)
+- Added `nmr_tube.sample_mass_mg` field for recording sample mass
+- Added `nmr_tube.rotor_serial` field for solid-state NMR rotors
+- Expanded `nmr_tube.type` enum to include rotor types: "zirconia rotor", "silicon nitride rotor", "sapphire rotor"
+- Added units for absolute amounts in `sample.components[].unit`: "mg", "umol", "nmol"
+- Enhanced `sample.components[].isotopic_labelling` options with deuteration patterns:
+  - "2H,15N", "2H,Ile-δ1-13CH3", "2H,Leu/Val-13CH3", "2H,ILV-13CH3"
+  - "2H,Met-13CH3", "2H,ILVM-13CH3", "2H,ILVA-13CH3", "2H,ILVMA-13CH3", "2H,ILVMAT-13CH3"
+- Reorganized some isotopic labelling options (e.g., separated "Ile-δ1-13CH3,15N" and "ILV-13CH3,15N")
+
+**Description Updates:**
+- Updated `people.groups` description to clarify "Research groups (surnames)"
+- Changed `nmr_tube` title from "NMR Tube" to "NMR Tube / Rotor"
+- Updated `nmr_tube.diameter` description to include rotors
+- Updated `nmr_tube.type` description to mention rotors
+- Clarified `sample.components[].name` as "Molecule name"
+- Improved `sample.components[].concentration_or_amount` description
+
+**Migration Support:**
+- Added migration tools in Python and Julia (see `migration-code/`)
+- Added `current/patch.json` with automated migration rules
+- See [Patching schema updates](#patching-schema-updates) section for migration details
+
 ## Contributing
 
 The schema is being developed through practical use in the Waudby laboratory at UCL School of Pharmacy. If you're using these schemas in your own work and have suggestions for improvements or extensions, please open an issue to discuss or contact [Chris](mailto:c.waudby@ucl.ac.uk) directly. We're especially interested in hearing from groups who might want to adopt or extend these schemas for their own workflows.
