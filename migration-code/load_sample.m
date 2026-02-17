@@ -1,4 +1,4 @@
-% NMR Sample Loading with Schema Migration - MATLAB
+% NMR Sample Loading and Schema Migration - MATLAB Implementation
 %
 % Provides functions to load NMR sample JSON files and migrate them to the
 % latest schema version using the patch.json migration rules.
@@ -16,7 +16,7 @@
 function data = load_sample(samplePath, patchPath)
     if nargin < 2
         thisDir = fileparts(mfilename('fullpath'));
-        patchPath = fullfile(thisDir, '..', 'current', 'patch.json');
+        patchPath = fullfile(thisDir, 'current_schema', 'patch.json');
     end
     text = fileread(samplePath);
     data = jsondecode(text);
@@ -30,11 +30,11 @@ function data = updateToLatestSchema(data, migrations)
         version = getVersion(data);
         applied = false;
         for i = 1:numel(migrations)
-            block = migrations(i);
+            block = getElement(migrations, i);
             if strcmp(block.from_version, version)
                 ops = block.operations;
                 for j = 1:numel(ops)
-                    data = applyOp(data, ops(j));
+                    data = applyOp(data, getElement(ops, j));
                 end
                 applied = true;
                 break;
@@ -43,6 +43,16 @@ function data = updateToLatestSchema(data, migrations)
         if ~applied
             break;
         end
+    end
+end
+
+
+function elem = getElement(arr, idx)
+    % Handle both cell arrays and struct arrays from jsondecode
+    if iscell(arr)
+        elem = arr{idx};
+    else
+        elem = arr(idx);
     end
 end
 
@@ -280,9 +290,13 @@ function arr = applyToArray(arr, segs, fn)
             arr{k} = fn(arr{k}, segs);
         end
     elseif isstruct(arr) && numel(arr) > 1
+        % Convert struct array to cell array to avoid "dissimilar structures" error
+        % when operations add/remove fields
+        cellArr = cell(1, numel(arr));
         for k = 1:numel(arr)
-            arr(k) = fn(arr(k), segs);
+            cellArr{k} = fn(arr(k), segs);
         end
+        arr = cellArr;
     else
         arr = fn(arr, segs);
     end
