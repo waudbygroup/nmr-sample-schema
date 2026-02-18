@@ -43,6 +43,7 @@ versions/v0.0.1/schema.json
 versions/v0.0.2/schema.json
 versions/v0.0.3/schema.json
 versions/v0.1.0/schema.json
+versions/v0.2.0/schema.json
 current/schema.json
 ```
 
@@ -50,12 +51,12 @@ The `current` directory is a copy of the latest tagged release.
 
 To reference a specific schema version in your application:
 ```
-https://github.com/waudbygroup/nmr-sample-schema/blob/main/versions/v0.1.0/schema.json
+https://github.com/nmr-samples/schema/blob/main/versions/v0.2.0/schema.json
 ```
 
 To always use the latest schema:
 ```
-https://github.com/waudbygroup/nmr-sample-schema/blob/main/current/schema.json
+https://github.com/nmr-samples/schema/blob/main/current/schema.json
 ```
 
 ## Patching schema updates
@@ -85,7 +86,21 @@ Paths: JSON Pointer with `*` wildcard for array elements. Missing intermediate p
 
 
 
+
+## Applications
+
+This schema is used by:
+
+- [NMR Samples (Topspin)](https://nmr-samples.github.io/topspin) - Topspin-integrated sample manager
+- [NMR Samples (online)](https://nmr-samples.github.io/online) - Web-based sample manager
+
 ## Changelog
+
+### v0.2.0
+
+**Non-breaking changes:**
+- Moved schema from waudbygroup to new organisation, nmr-samples/schema
+- Add `metadata.schema_source` with link to schema
 
 ### v0.1.0
 

@@ -1,6 +1,6 @@
 {
     "$schema": "https://json-schema.org/draft/2019-09/schema",
-    "$id": "https://raw.githubusercontent.com/waudbygroup/nmr-sample-schema/main/versions/v0.0.3/schema.json",
+    "$id": "https://raw.githubusercontent.com/nmr-samples/schema/main/versions/v0.0.3/schema.json",
     "title": "NMR Sample Metadata",
     "description": "Schema for NMR sample metadata collection in TopSpin environments",
     "version": "0.0.3",

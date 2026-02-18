@@ -12,7 +12,7 @@
  * System Access API. Returns the parsed and migrated object.
  */
 
-var MIGRATIONS_URL = "https://raw.githubusercontent.com/waudbygroup/nmr-sample-schema/main/current/patch.json";
+var MIGRATIONS_URL = "https://raw.githubusercontent.com/nmr-samples/schema/main/current/patch.json";
 
 
 // ── Core migration engine (synchronous, no I/O) ─────────────────────
