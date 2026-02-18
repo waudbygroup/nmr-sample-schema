@@ -17,6 +17,17 @@ Modern NMR experiments generate rich datasets, but associated information about 
 - Version tracking so datasets remain interpretable as the schema evolves
 - Interoperability across different tools and applications
 
+## Ecosystem
+
+Currently, sample management is implemented by two applications:
+
+- [topspin-samples](https://github.com/waudbygroup/topspin-samples) - An integrated sample manager for Topspin (v3 upwards)
+- [nmr-samples](http://github.com/waudbygroup/nmr-samples) - A web-based sample manager, accessible at [waudbylab.org/nmr-samples](https://waudbylab.org/nmr-samples)
+
+Support for sample information is integrated into [NOMAD](https://github.com/nomad-nmr) (v3.6.3 onwards).
+
+Sample parsing is supported by [NMRTools.jl](https://github.com/waudbygroup/NMRTools.jl), and has been integrated into [NMR TITAN](https://www.nmr-titan.com) (development version).
+
 ## Schema Versions
 
 Schemas are versioned using semantic versioning and tagged in this repository. Each dataset should record the schema version it was created with, ensuring backwards compatibility as the schema evolves.
@@ -73,14 +84,6 @@ The file `current/patch.json` contains methods to update files to the latest sch
 Paths: JSON Pointer with `*` wildcard for array elements. Missing intermediate paths → no-op (except `set` which creates them).
 
 
-
-
-## Applications
-
-This schema is used by:
-
-- [topspin-samples](https://github.com/waudbygroup/topspin-samples) - Topspin-integrated sample manager
-- [nmr-samples](http://github.com/waudbygroup/nmr-samples) - Web-based sample manager, accessed at [waudbylab.org/nmr-samples](https://waudbylab.org/nmr-samples)
 
 ## Changelog
 
