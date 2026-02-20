@@ -21,8 +21,8 @@ Modern NMR experiments generate rich datasets, but associated information about 
 
 Currently, sample management is implemented by two applications:
 
-- [topspin-samples](https://github.com/waudbygroup/topspin-samples) - An integrated sample manager for Topspin (v3 upwards)
-- [nmr-samples](http://github.com/waudbygroup/nmr-samples) - A web-based sample manager, accessible at [waudbylab.org/nmr-samples](https://waudbylab.org/nmr-samples)
+- [NMR Sample Manager (Topspin)](https://nmr-samples.github.io/topspin) - An integrated sample manager for Topspin (v3 upwards)
+- [NMR Sample Manager (online)](https://nmr-samples.github.io/online) - A web-based sample manager
 
 Support for sample information is integrated into [NOMAD](https://github.com/nomad-nmr) (v3.6.3 onwards).
 
