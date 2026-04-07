@@ -76,8 +76,36 @@ def _ensure_parents(data, segments):
 
 def _apply_set(data, op):
     segments = _parse_path(op["path"])
-    parent, key = _ensure_parents(data, segments)
-    parent[key] = op["value"]
+    value = op["value"]
+    if "*" not in segments:
+        parent, key = _ensure_parents(data, segments)
+        parent[key] = value
+    else:
+        _walk_and_set(data, segments, 0, value)
+
+
+def _walk_and_set(obj, segments, depth, value):
+    """Recursively walk segments, expanding wildcards over lists,
+    and set the value at the final segment (creating it if absent)."""
+    if depth == len(segments) - 1:
+        seg = segments[depth]
+        if seg == "*":
+            if isinstance(obj, list):
+                for i in range(len(obj)):
+                    obj[i] = value
+        elif isinstance(obj, dict):
+            obj[seg] = value
+        return
+
+    seg = segments[depth]
+    if seg == "*":
+        if isinstance(obj, list):
+            for item in obj:
+                _walk_and_set(item, segments, depth + 1, value)
+    elif isinstance(obj, dict):
+        if seg not in obj or not isinstance(obj[seg], (dict, list)):
+            obj[seg] = {}
+        _walk_and_set(obj[seg], segments, depth + 1, value)
 
 
 def _apply_remove(data, op):
