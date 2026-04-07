@@ -78,8 +78,44 @@ function _ensureParents(data, segments) {
 
 function _applySet(data, op) {
     var segments = _parsePath(op.path);
-    var pair = _ensureParents(data, segments);
-    pair[0][pair[1]] = op.value;
+    var value = op.value;
+    if (segments.indexOf("*") === -1) {
+        var pair = _ensureParents(data, segments);
+        pair[0][pair[1]] = value;
+    } else {
+        _walkAndSet(data, segments, 0, value);
+    }
+}
+
+
+function _walkAndSet(obj, segments, depth, value) {
+    if (depth === segments.length - 1) {
+        var seg = segments[depth];
+        if (seg === "*") {
+            if (Array.isArray(obj)) {
+                for (var i = 0; i < obj.length; i++) {
+                    obj[i] = value;
+                }
+            }
+        } else if (obj !== null && typeof obj === "object" && !Array.isArray(obj)) {
+            obj[seg] = value;
+        }
+        return;
+    }
+
+    var seg = segments[depth];
+    if (seg === "*") {
+        if (Array.isArray(obj)) {
+            for (var i = 0; i < obj.length; i++) {
+                _walkAndSet(obj[i], segments, depth + 1, value);
+            }
+        }
+    } else if (obj !== null && typeof obj === "object" && !Array.isArray(obj)) {
+        if (!(seg in obj) || (typeof obj[seg] !== "object" || obj[seg] === null)) {
+            obj[seg] = {};
+        }
+        _walkAndSet(obj[seg], segments, depth + 1, value);
+    }
 }
 
 

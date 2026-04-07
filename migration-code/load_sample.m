@@ -119,7 +119,29 @@ function obj = setAtPath(obj, segs, value)
     end
     key = segs{1};
     rest = segs(2:end);
-    if isempty(rest)
+    if strcmp(key, '*')
+        if isempty(rest)
+            % wildcard at leaf: replace each element
+            if iscell(obj)
+                for k = 1:numel(obj)
+                    obj{k} = value;
+                end
+            end
+        else
+            % wildcard at intermediate level: recurse into each element
+            if iscell(obj)
+                for k = 1:numel(obj)
+                    obj{k} = setAtPath(obj{k}, rest, value);
+                end
+            elseif isstruct(obj) && numel(obj) > 1
+                cellArr = cell(1, numel(obj));
+                for k = 1:numel(obj)
+                    cellArr{k} = setAtPath(obj(k), rest, value);
+                end
+                obj = cellArr;
+            end
+        end
+    elseif isempty(rest)
         obj = setField(obj, key, value);
     else
         child = getField(obj, key);
