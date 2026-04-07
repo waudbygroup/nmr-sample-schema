@@ -44,6 +44,7 @@ versions/v0.0.2/schema.json
 versions/v0.0.3/schema.json
 versions/v0.1.0/schema.json
 versions/v0.2.0/schema.json
+versions/v0.3.0/schema.json
 current/schema.json
 ```
 
@@ -51,7 +52,7 @@ The `current` directory is a copy of the latest tagged release.
 
 To reference a specific schema version in your application:
 ```
-https://github.com/nmr-samples/schema/blob/main/versions/v0.2.0/schema.json
+https://github.com/nmr-samples/schema/blob/main/versions/v0.3.0/schema.json
 ```
 
 To always use the latest schema:
@@ -95,6 +96,13 @@ This schema is used by:
 - [NMR Samples (online)](https://nmr-samples.github.io/online) - Web-based sample manager
 
 ## Changelog
+
+### v0.3.0
+
+**Breaking Changes:**
+- Added `molecular_weight` field (number or null, in Da) to sample components
+- Removed `equiv` from sample component `unit` enum
+- Renamed `nmr_tube.diameter` to `nmr_tube.diameter_mm`
 
 ### v0.2.0
 
