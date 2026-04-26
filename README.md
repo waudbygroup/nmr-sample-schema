@@ -28,6 +28,47 @@ Support for sample information is integrated into [NOMAD](https://github.com/nom
 
 Sample parsing is supported by [NMRTools.jl](https://github.com/waudbygroup/NMRTools.jl), and has been integrated into [NMR TITAN](https://www.nmr-titan.com) (development version).
 
+## Schema Structure
+
+The current schema (v0.4.0) organizes sample metadata into the following structure:
+
+| Level 1 | Level 2 | Level 3 | Type / Values |
+|---------|---------|---------|---------------|
+| **people** | users [array] | | string |
+| | groups [array] | | string |
+| **sample** | label | | string |
+| | physical_form | | enum: `""`, `"solution"`, `"aligned"`, `"solid"` |
+| | components [array] | name | string |
+| | | type | enum: `""`, `"small molecule"`, `"protein"`, `"protein (intrinsically disordered)"`, `"peptide"`, `"RNA"`, `"DNA"`, `"lipid"`, `"carbohydrate"`, `"other"` |
+| | | molecular_weight | number \| null |
+| | | concentration_or_amount | number \| null |
+| | | unit | enum: `""`, `"uM"`, `"mM"`, `"M"`, `"mg/mL"`, `"%w/v"`, `"%v/v"`, `"mg"`, `"umol"`, `"nmol"` |
+| | | isotopic_labelling | enum: `""`, `"natural abundance"`, `"19F"`, `"15N"`, `"13C"`, `"13C,15N"`, `"2H"`, `"2H,15N"`, `"2H,13C,15N"`, `"Ile-13CH3,15N"`, `"ILV-13CH3,15N"`, `"Met-13CH3,15N"`, `"ILVM-13CH3,15N"`, `"2H,Ile-13CH3"`, `"2H,ILV-13CH3"`, `"2H,Met-13CH3"`, `"2H,ILVM-13CH3"`, `"2H,ILVA-13CH3"`, `"2H,ILVMA-13CH3"`, `"2H,ILVMAT-13CH3"`, `"custom"` |
+| | | custom_labelling | string |
+| **buffer** | ph | | number \| null |
+| | components [array] | name | string |
+| | | concentration | number \| null |
+| | | unit | enum: `""`, `"uM"`, `"mM"`, `"M"`, `"mg/mL"`, `"%w/v"`, `"%v/v"`, `"%w/w"` |
+| | chemical_shift_reference | | enum: `""`, `"none"`, `"DSS"`, `"TMS"`, `"TSP"` |
+| | reference_concentration | | number \| null |
+| | reference_unit | | enum: `""`, `"uM"`, `"mM"`, `"M"`, `"mg/mL"`, `"%w/v"`, `"%v/v"`, `"%w/w"` |
+| | solvent | | enum: `""`, `"10% D2O"`, `"100% D2O"`, `"CDCl3"`, `"DMSO-d6"`, `"Methanol-d4"`, `"Acetone-d6"`, `"Acetonitrile-d3"`, `"Benzene-d6"`, `"THF-d8"`, `"custom"` |
+| | custom_solvent | | string |
+| **nmr_tube** | diameter_mm | | number \| null |
+| | type | | enum: `""`, `"regular"`, `"shigemi"`, `"shaped"`, `"coaxial"`, `"J Young"`, `"zirconia rotor"`, `"silicon nitride rotor"`, `"sapphire rotor"` |
+| | sample_volume_uL | | number \| null |
+| | sample_mass_mg | | number \| null |
+| | rack_id | | string |
+| | rotor_serial | | string |
+| **reference** | sample_id | | string |
+| | labbook_entry | | string |
+| **notes** | | | string |
+| **metadata** | created_timestamp | | string (date-time format) |
+| | modified_timestamp | | string (date-time format) |
+| | ejected_timestamp | | string (date-time format) |
+| | schema_version | | string |
+| | schema_source | | string |
+
 ## Schema Versions
 
 Schemas are versioned using semantic versioning and tagged in this repository. Each dataset should record the schema version it was created with, ensuring backwards compatibility as the schema evolves.
