@@ -1,17 +1,11 @@
 % NMR Sample Loading and Schema Migration - MATLAB Implementation
 %
-% Provides functions to load NMR sample JSON files and migrate them to the
+% Provides a function to load NMR sample JSON files and migrate them to the
 % latest schema version using the patch.json migration rules.
 %
 % Usage:
 %   data = load_sample('path/to/sample.json');
 %   data = load_sample('path/to/sample.json', 'path/to/patch.json');
-%   data = updateToLatestSchema(data, migrations);
-%
-% Functions:
-%   load_sample(samplePath)               - load JSON and migrate to latest schema
-%   load_sample(samplePath, patchPath)    - load JSON and migrate using given patch file
-%   updateToLatestSchema(data, migrations) - apply migrations to a parsed struct
 
 function data = load_sample(samplePath, patchPath)
     if nargin < 2
@@ -48,7 +42,6 @@ end
 
 
 function elem = getElement(arr, idx)
-    % Handle both cell arrays and struct arrays from jsondecode
     if iscell(arr)
         elem = arr{idx};
     else
@@ -82,11 +75,6 @@ function segments = parsePath(path)
     segments = strrep(strrep(parts, '~1', '/'), '~0', '~');
 end
 
-
-% _resolve returns a cell array of {parent, key} pairs for the given path.
-% parent is a struct or cell array (returned by reference via indices into
-% data), but MATLAB's value semantics make true in-place editing via resolve
-% impractical. Instead we use recursive helpers per operation.
 
 function data = applyOp(data, op)
     switch op.op
@@ -145,7 +133,7 @@ function obj = setAtPath(obj, segs, value)
         obj = setField(obj, key, value);
     else
         child = getField(obj, key);
-        if isempty(child) || ~isstruct(child)
+        if ~isstruct(child) && ~iscell(child)
             % With a wildcard elsewhere in the path, a missing intermediate
             % is a silent no-op. Otherwise create an empty struct so we can
             % descend into concrete paths like /metadata/schema_version.
@@ -172,24 +160,24 @@ function obj = removeAtPath(obj, segs)
         return;
     end
     key = segs{1};
+    safeKey = matlabKey(key);
     rest = segs(2:end);
     if strcmp(key, '*')
-        % wildcard on a cell array of structs stored as a field above
         return;
     end
-    if ~isfield(obj, key)
+    if ~isfield(obj, safeKey)
         return;
     end
     if isempty(rest)
-        obj = rmfield(obj, key);
+        obj = rmfield(obj, safeKey);
     else
-        child = obj.(key);
+        child = obj.(safeKey);
         if strcmp(rest{1}, '*') && (iscell(child) || isstruct(child))
             child = applyToArray(child, rest(2:end), @removeAtPath);
         else
             child = removeAtPath(child, rest);
         end
-        obj.(key) = child;
+        obj.(safeKey) = child;
     end
 end
 
@@ -206,32 +194,29 @@ function obj = renameAtPath(obj, segs, toKey)
         return;
     end
     key = segs{1};
+    safeKey = matlabKey(key);
     rest = segs(2:end);
     if strcmp(key, '*')
         return;
     end
-    if ~isfield(obj, key)
+    if ~isfield(obj, safeKey)
         return;
     end
     if isempty(rest)
-        % rename this key
-        safeKey = matlabKey(key);
         safeToKey = matlabKey(toKey);
-        if isfield(obj, safeKey)
-            if isfield(obj, safeToKey)
-                error('rename_key: target key ''%s'' already exists', toKey);
-            end
-            obj.(safeToKey) = obj.(safeKey);
-            obj = rmfield(obj, safeKey);
+        if isfield(obj, safeToKey)
+            error('rename_key: target key ''%s'' already exists', toKey);
         end
+        obj.(safeToKey) = obj.(safeKey);
+        obj = rmfield(obj, safeKey);
     else
-        child = obj.(key);
+        child = obj.(safeKey);
         if strcmp(rest{1}, '*') && (iscell(child) || isstruct(child))
             child = applyToArray(child, rest(2:end), @(c,s) renameAtPath(c, s, toKey));
         else
             child = renameAtPath(child, rest, toKey);
         end
-        obj.(key) = child;
+        obj.(safeKey) = child;
     end
 end
 
@@ -248,26 +233,27 @@ function obj = mapAtPath(obj, segs, fromVal, toVal)
         return;
     end
     key = segs{1};
+    safeKey = matlabKey(key);
     rest = segs(2:end);
     if strcmp(key, '*')
         return;
     end
-    if ~isfield(obj, key)
+    if ~isfield(obj, safeKey)
         return;
     end
     if isempty(rest)
-        current = obj.(key);
+        current = obj.(safeKey);
         if isequal(current, fromVal)
-            obj.(key) = toVal;
+            obj.(safeKey) = toVal;
         end
     else
-        child = obj.(key);
+        child = obj.(safeKey);
         if strcmp(rest{1}, '*') && (iscell(child) || isstruct(child))
             child = applyToArray(child, rest(2:end), @(c,s) mapAtPath(c, s, fromVal, toVal));
         else
             child = mapAtPath(child, rest, fromVal, toVal);
         end
-        obj.(key) = child;
+        obj.(safeKey) = child;
     end
 end
 
@@ -290,18 +276,19 @@ function [obj, value, found] = extractAtPath(obj, segs)
         return;
     end
     key = segs{1};
+    safeKey = matlabKey(key);
     rest = segs(2:end);
-    if strcmp(key, '*') || ~isfield(obj, key)
+    if strcmp(key, '*') || ~isfield(obj, safeKey)
         return;
     end
     if isempty(rest)
-        value = obj.(key);
+        value = obj.(safeKey);
         found = true;
-        obj = rmfield(obj, key);
+        obj = rmfield(obj, safeKey);
     else
-        child = obj.(key);
+        child = obj.(safeKey);
         [child, value, found] = extractAtPath(child, rest);
-        obj.(key) = child;
+        obj.(safeKey) = child;
     end
 end
 
@@ -310,16 +297,12 @@ end
 % Array helpers
 % -------------------------------------------------------------------------
 
-% applyToArray applies fn(element, remainingSegs) to each element of an
-% array (cell array of structs or struct array) and returns the modified array.
 function arr = applyToArray(arr, segs, fn)
     if iscell(arr)
         for k = 1:numel(arr)
             arr{k} = fn(arr{k}, segs);
         end
     elseif isstruct(arr) && numel(arr) > 1
-        % Convert struct array to cell array to avoid "dissimilar structures" error
-        % when operations add/remove fields
         cellArr = cell(1, numel(arr));
         for k = 1:numel(arr)
             cellArr{k} = fn(arr(k), segs);
@@ -335,13 +318,12 @@ end
 % Field access helpers that handle jsondecode naming quirks
 % -------------------------------------------------------------------------
 
-% MATLAB's jsondecode replaces spaces and special chars with underscores
-% and prefixes numeric-starting names with 'x'. This helper maps a raw
-% JSON key to what jsondecode would produce.
 function mk = matlabKey(key)
-    % Replace any character that is not alphanumeric or underscore with '_'
-    mk = regexprep(key, '[^a-zA-Z0-9_]', '_');
-    % Prefix with 'x' if the name starts with a digit
+    % MATLAB jsondecode removes spaces using camelCase (capitalise char after
+    % each space). Other invalid characters are replaced with underscores.
+    mk = regexprep(key, ' ([a-zA-Z])', '${upper($1)}');
+    mk = strrep(mk, ' ', '');
+    mk = regexprep(mk, '[^a-zA-Z0-9_]', '_');
     if ~isempty(mk) && mk(1) >= '0' && mk(1) <= '9'
         mk = ['x' mk];
     end

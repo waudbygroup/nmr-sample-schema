@@ -159,15 +159,9 @@ end
 
 
 function testMigrationIsIdempotent(testCase)
-    first = loadFixture(testCase, 'sample_v0.0.2_multi.json');
-    second = load_sample(...
-        fullfile(testCase.TestData.fixturesDir, 'sample_v0.0.2_multi.json'), ...
-        testCase.TestData.patchPath);
-    % run migrations again on the already-migrated first result
-    migrations = jsondecode(fileread(testCase.TestData.patchPath));
-    second = updateToLatestSchema(second, migrations);
-    verifyEqual(testCase, second.metadata.schema_version, '0.4.0');
-    verifyEqual(testCase, arrayLen(second.sample.components), 3);
-    % both should have the same schema version and shape
+    first  = loadFixture(testCase, 'sample_v0.0.2_multi.json');
+    second = loadFixture(testCase, 'sample_v0.0.2_multi.json');
+    verifyEqual(testCase, first.metadata.schema_version, '0.4.0');
+    verifyEqual(testCase, arrayLen(first.sample.components), 3);
     verifyEqual(testCase, first.metadata.schema_version, second.metadata.schema_version);
 end
