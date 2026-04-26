@@ -16,7 +16,7 @@
 function data = load_sample(samplePath, patchPath)
     if nargin < 2
         thisDir = fileparts(mfilename('fullpath'));
-        patchPath = fullfile(thisDir, 'current_schema', 'patch.json');
+        patchPath = fullfile(thisDir, '..', 'current', 'patch.json');
     end
     text = fileread(samplePath);
     data = jsondecode(text);
@@ -146,6 +146,12 @@ function obj = setAtPath(obj, segs, value)
     else
         child = getField(obj, key);
         if isempty(child) || ~isstruct(child)
+            % With a wildcard elsewhere in the path, a missing intermediate
+            % is a silent no-op. Otherwise create an empty struct so we can
+            % descend into concrete paths like /metadata/schema_version.
+            if any(strcmp(rest, '*'))
+                return;
+            end
             child = struct();
         end
         child = setAtPath(child, rest, value);

@@ -108,10 +108,11 @@ function _walk_and_set(obj, segments, depth, value)
             end
         end
     elseif isa(obj, Dict)
-        if !haskey(obj, seg) || !isa(obj[seg], Union{Dict, Vector})
-            obj[seg] = Dict{String,Any}()
+        # With a wildcard elsewhere in the path, a missing intermediate is a
+        # silent no-op. Don't materialize empty containers.
+        if haskey(obj, seg) && isa(obj[seg], Union{Dict,Vector})
+            _walk_and_set(obj[seg], segments, depth + 1, value)
         end
-        _walk_and_set(obj[seg], segments, depth + 1, value)
     end
 end
 

@@ -262,5 +262,25 @@
         "value": "https://raw.githubusercontent.com/nmr-samples/schema/main/versions/v0.3.0/schema.json"
       }
     ]
+  },
+  {
+    "from_version": "0.3.0",
+    "operations": [
+      {
+        "op": "set",
+        "path": "/sample/components/*/type",
+        "value": null
+      },
+      {
+        "op": "set",
+        "path": "/metadata/schema_version",
+        "value": "0.4.0"
+      },
+      {
+        "op": "set",
+        "path": "/metadata/schema_source",
+        "value": "https://raw.githubusercontent.com/nmr-samples/schema/main/versions/v0.4.0/schema.json"
+      }
+    ]
   }
 ]

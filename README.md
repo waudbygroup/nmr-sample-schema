@@ -45,6 +45,7 @@ versions/v0.0.3/schema.json
 versions/v0.1.0/schema.json
 versions/v0.2.0/schema.json
 versions/v0.3.0/schema.json
+versions/v0.4.0/schema.json
 current/schema.json
 ```
 
@@ -52,7 +53,7 @@ The `current` directory is a copy of the latest tagged release.
 
 To reference a specific schema version in your application:
 ```
-https://github.com/nmr-samples/schema/blob/main/versions/v0.3.0/schema.json
+https://github.com/nmr-samples/schema/blob/main/versions/v0.4.0/schema.json
 ```
 
 To always use the latest schema:
@@ -77,7 +78,7 @@ The file `current/patch.json` contains methods to update files to the latest sch
 
 | Op | Fields | Behaviour |
 |---|---|---|
-| `set` | `path`, `value` | Set value at path. Creates intermediate objects if absent. |
+| `set` | `path`, `value` | Set value at path. On concrete paths, creates intermediate objects if absent. On wildcard paths, missing intermediates are a silent no-op. |
 | `remove` | `path` | Remove key at path. No-op if absent. |
 | `rename_key` | `path`, `to` | Rename final key segment. No-op if key absent. Error if `to` already exists. |
 | `map` | `path`, `from`, `to` | If value at path equals `from`, replace with `to`. Otherwise no-op. |
@@ -95,7 +96,41 @@ This schema is used by:
 - [NMR Samples (Topspin)](https://nmr-samples.github.io/topspin) - Topspin-integrated sample manager
 - [NMR Samples (online)](https://nmr-samples.github.io/online) - Web-based sample manager
 
+## Tests
+
+Unit tests cover the Python, Julia, and JavaScript conversion scripts and run in GitHub Actions (`.github/workflows/test.yml`). MATLAB tests live alongside them but are run locally – MATLAB is proprietary and CI runners are not generally available. Fixtures shared across all four suites are in `tests/fixtures/`.
+
+```
+# Python
+python -m pytest tests/python
+
+# JavaScript (Node 18+)
+cd tests/js && node --test test_migrate.js
+
+# Julia
+julia --project=tests/julia -e 'using Pkg; Pkg.instantiate()'
+julia --project=tests/julia tests/julia/runtests.jl
+
+# MATLAB (manual, not in CI)
+>> cd tests/matlab
+>> runtests('testMigrate')
+```
+
+
 ## Changelog
+
+### v0.4.0
+
+**Non-breaking changes:**
+- Added `sample.components[].type` field (`null | "" | small molecule | peptide | protein | RNA | DNA | carbohydrate | other`) to classify molecule type
+- Added `19F` isotopic labelling option: `19F`
+- Expanded `buffer.solvent` enum with common NMR solvents: `5% D2O`, `CD2Cl2`, `CD3CN`, `C6D6`, `D6-acetone`, `D5-pyridine`, `D8-toluene`, `D8-THF`, `D12-cyclohexane`, `D3-TFA`
+
+**Infrastructure:**
+- Added unit tests for Python, Julia, and JavaScript conversion scripts (CI via GitHub Actions)
+- Added MATLAB tests for local runs
+- Fixed wildcard `set` operations materialising spurious empty-dict intermediates when the parent array was absent
+
 
 ### v0.3.0
 

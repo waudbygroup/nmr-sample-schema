@@ -111,10 +111,11 @@ function _walkAndSet(obj, segments, depth, value) {
             }
         }
     } else if (obj !== null && typeof obj === "object" && !Array.isArray(obj)) {
-        if (!(seg in obj) || (typeof obj[seg] !== "object" || obj[seg] === null)) {
-            obj[seg] = {};
+        // With a wildcard elsewhere in the path, a missing intermediate is
+        // a silent no-op. Don't materialize empty containers.
+        if (seg in obj && obj[seg] !== null && typeof obj[seg] === "object") {
+            _walkAndSet(obj[seg], segments, depth + 1, value);
         }
-        _walkAndSet(obj[seg], segments, depth + 1, value);
     }
 }
 
@@ -249,4 +250,22 @@ async function loadSample(migrations) {
     var text = await file.text();
     var data = JSON.parse(text);
     return updateToLatestSchema(data, migrations);
+}
+
+
+// Node.js export (harmless in browsers: `module` is undefined there).
+if (typeof module !== "undefined" && module.exports) {
+    module.exports = {
+        MIGRATIONS_URL: MIGRATIONS_URL,
+        updateToLatestSchema: updateToLatestSchema,
+        loadMigrations: loadMigrations,
+        loadSample: loadSample,
+        _parsePath: _parsePath,
+        _resolve: _resolve,
+        _applySet: _applySet,
+        _applyRemove: _applyRemove,
+        _applyRenameKey: _applyRenameKey,
+        _applyMap: _applyMap,
+        _applyMove: _applyMove
+    };
 }
