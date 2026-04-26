@@ -161,9 +161,11 @@ def test_migrate_v030_adds_type_to_every_component():
     assert len(comps) == 3
     for c in comps:
         assert "type" in c and c["type"] is None
-        # existing fields are preserved
         assert "molecular_weight" in c
         assert "isotopic_labelling" in c
+
+    # "unlabelled" in the fixture must be remapped
+    assert comps[1]["isotopic_labelling"] == "natural abundance"
 
 
 def test_migrate_empty_components_is_noop_for_wildcard_ops():
@@ -200,6 +202,52 @@ def test_migrate_preserves_19f_labelling():
     data = _load("sample_v0.4.0_already_current.json")
     _migrate(data)
     assert data["sample"]["components"][0]["isotopic_labelling"] == "19F"
+
+
+def test_migrate_v030_isotopic_labelling_mappings():
+    data = _load("sample_v0.3.0_labelling_solvent.json")
+    _migrate(data)
+    _assert_current(data)
+
+    comps = data["sample"]["components"]
+    assert comps[0]["isotopic_labelling"] == "natural abundance"   # unlabelled → natural abundance
+    assert comps[1]["isotopic_labelling"] == "Ile-13CH3,15N"       # Ile-δ1-13CH3,15N → Ile-13CH3,15N
+    assert comps[2]["isotopic_labelling"] == "2H,Ile-13CH3"        # 2H,Ile-δ1-13CH3 → 2H,Ile-13CH3
+    assert comps[3]["isotopic_labelling"] == ""                    # 2H,Leu/Val-13CH3 → "" (no equivalent)
+
+
+def test_migrate_v030_solvent_d6_dmso():
+    data = _load("sample_v0.3.0_labelling_solvent.json")
+    _migrate(data)
+    assert data["buffer"]["solvent"] == "DMSO-d6"
+
+
+def test_migrate_v030_solvent_d4_methanol():
+    data = {
+        "sample": {"components": []},
+        "buffer": {"solvent": "D4-methanol"},
+        "metadata": {"schema_version": "0.3.0"},
+    }
+    _migrate(data)
+    assert data["buffer"]["solvent"] == "Methanol-d4"
+
+
+def test_migrate_v030_unaffected_labelling_values_preserved():
+    """Values already valid in v0.4.0 must not be altered."""
+    data = {
+        "sample": {
+            "components": [
+                {"isotopic_labelling": "13C,15N"},
+                {"isotopic_labelling": "2H,13C,15N"},
+                {"isotopic_labelling": ""},
+                {"isotopic_labelling": "custom"},
+            ]
+        },
+        "metadata": {"schema_version": "0.3.0"},
+    }
+    _migrate(data)
+    labels = [c["isotopic_labelling"] for c in data["sample"]["components"]]
+    assert labels == ["13C,15N", "2H,13C,15N", "", "custom"]
 
 
 def test_migrate_large_component_array():
