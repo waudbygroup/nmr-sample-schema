@@ -99,17 +99,114 @@ end
             @test !haskey(c, "Concentration")
             @test !haskey(c, "Unit")
             @test !haskey(c, "Isotopic labelling")
+            @test !haskey(c, "Custom labelling")
             @test haskey(c, "name")
             @test haskey(c, "concentration_or_amount")
             @test haskey(c, "unit")
             @test haskey(c, "isotopic_labelling")
+            @test haskey(c, "custom_labelling")
             @test haskey(c, "molecular_weight")
             @test haskey(c, "type")
             @test c["type"] === nothing
         end
         @test !any(c["unit"] == "equiv" for c in comps)
 
+        # sample-level renames
+        @test !haskey(data["sample"], "Label")
+        @test data["sample"]["label"] == "Test v0.0.2 with multiple components"
+        @test data["sample"]["physical_form"] == ""  # added in 0.0.3 → 0.1.0
+
+        # buffer field renames
+        @test !haskey(data["buffer"], "pH")
+        @test data["buffer"]["ph"] == 7.4
+        @test !haskey(data["buffer"], "Solvent")
+        @test data["buffer"]["solvent"] == "10% D2O"
+        @test !haskey(data["buffer"], "Chemical shift reference")
+        @test data["buffer"]["chemical_shift_reference"] == "DSS"
+        @test !haskey(data["buffer"], "Reference concentration")
+        @test data["buffer"]["reference_concentration"] == 10
+        @test !haskey(data["buffer"], "Reference unit")
+        @test data["buffer"]["reference_unit"] == "uM"
+        @test !haskey(data["buffer"], "Custom solvent")
+        @test data["buffer"]["custom_solvent"] == ""
+
+        # buffer component renames
+        buf_comps = data["buffer"]["components"]
+        @test length(buf_comps) == 2
+        for bc in buf_comps
+            @test !haskey(bc, "Concentration")
+            @test !haskey(bc, "Unit")
+            @test haskey(bc, "concentration")
+            @test haskey(bc, "unit")
+        end
+
+        # NMR tube renames
+        @test !haskey(data["nmr_tube"], "Type")
+        @test data["nmr_tube"]["type"] == "shigemi"
+        @test !haskey(data["nmr_tube"], "Sample Volume (μL)")
+        @test data["nmr_tube"]["sample_volume_uL"] == 300
+        @test !haskey(data["nmr_tube"], "samplejet_rack_position")  # removed in 0.0.3 → 0.1.0
+        @test !haskey(data["nmr_tube"], "samplejet_rack_id")
+        @test data["nmr_tube"]["rack_id"] == "rack-001"
+
         # diameter mapped from "5 mm" to 5.0 and renamed to diameter_mm
+        @test !haskey(data["nmr_tube"], "diameter")
+        @test data["nmr_tube"]["diameter_mm"] == 5.0
+
+        # reference field renames
+        @test !haskey(data["reference"], "Labbook Entry")
+        @test data["reference"]["labbook_entry"] == "page 42"
+        @test !haskey(data["reference"], "Experiment ID")
+        @test data["reference"]["sample_id"] == "EXP-2024-001"
+    end
+
+    @testset "v0.0.3 diameter string-to-number mappings" begin
+        for (diameter_str, expected) in [("1.7 mm", 1.7), ("3 mm", 3.0), ("5 mm", 5.0), ("", nothing)]
+            data = Dict{String,Any}(
+                "sample" => Dict{String,Any}(),
+                "nmr_tube" => Dict{String,Any}("diameter" => diameter_str),
+                "metadata" => Dict{String,Any}("schema_version" => "0.0.3"),
+            )
+            migrate!(data)
+            @test !haskey(data["nmr_tube"], "diameter")
+            @test data["nmr_tube"]["diameter_mm"] === expected
+        end
+    end
+
+    @testset "v0.0.3 samplejet rename, remove, and physical_form addition" begin
+        data = Dict{String,Any}(
+            "sample" => Dict{String,Any}(),
+            "nmr_tube" => Dict{String,Any}(
+                "diameter" => "5 mm",
+                "samplejet_rack_id" => "rack-001",
+                "samplejet_rack_position" => "A3",
+            ),
+            "metadata" => Dict{String,Any}("schema_version" => "0.0.3"),
+        )
+        migrate!(data)
+        @test data["nmr_tube"]["rack_id"] == "rack-001"
+        @test !haskey(data["nmr_tube"], "samplejet_rack_id")
+        @test !haskey(data["nmr_tube"], "samplejet_rack_position")
+        @test data["sample"]["physical_form"] == ""
+    end
+
+    @testset "v0.1.0 chain migrates to current" begin
+        data = Dict{String,Any}(
+            "sample" => Dict{String,Any}(
+                "physical_form" => "solution",
+                "components" => Any[
+                    Dict{String,Any}(
+                        "concentration_or_amount" => 1.0,
+                        "unit" => "mM",
+                        "isotopic_labelling" => "13C,15N",
+                    ),
+                ],
+            ),
+            "nmr_tube" => Dict{String,Any}("diameter" => 5.0),
+            "metadata" => Dict{String,Any}("schema_version" => "0.1.0"),
+        )
+        migrate!(data)
+        assert_current(data)
         @test !haskey(data["nmr_tube"], "diameter")
         @test data["nmr_tube"]["diameter_mm"] == 5.0
     end
@@ -127,6 +224,11 @@ end
             @test haskey(c, "type")
             @test c["type"] === nothing
         end
+
+        # nmr_tube.diameter renamed to diameter_mm in 0.2.0 → 0.3.0
+        @test !haskey(data["nmr_tube"], "diameter")
+        @test haskey(data["nmr_tube"], "diameter_mm")
+        @test data["nmr_tube"]["diameter_mm"] == 5.0
     end
 
     @testset "v0.3.0 multi-component: type added to every component" begin

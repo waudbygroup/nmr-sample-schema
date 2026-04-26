@@ -119,10 +119,12 @@ def test_migrate_v002_multi_component_renames_every_key():
     for c in comps:
         assert "Name" not in c and "Concentration" not in c and "Unit" not in c
         assert "Isotopic labelling" not in c
+        assert "Custom labelling" not in c
         assert "name" in c
         assert "concentration_or_amount" in c
         assert "unit" in c
         assert "isotopic_labelling" in c
+        assert "custom_labelling" in c
         # v0.3.0 added molecular_weight; v0.4.0 added type
         assert "molecular_weight" in c
         assert "type" in c and c["type"] is None
@@ -131,9 +133,50 @@ def test_migrate_v002_multi_component_renames_every_key():
     units = [c["unit"] for c in comps]
     assert "equiv" not in units
 
+    # sample-level renames
+    assert "Label" not in data["sample"]
+    assert data["sample"]["label"] == "Test v0.0.2 with multiple components"
+    assert data["sample"]["physical_form"] == ""  # added in 0.0.3 → 0.1.0
+
+    # buffer field renames
+    assert "pH" not in data["buffer"]
+    assert data["buffer"]["ph"] == 7.4
+    assert "Solvent" not in data["buffer"]
+    assert data["buffer"]["solvent"] == "10% D2O"
+    assert "Chemical shift reference" not in data["buffer"]
+    assert data["buffer"]["chemical_shift_reference"] == "DSS"
+    assert "Reference concentration" not in data["buffer"]
+    assert data["buffer"]["reference_concentration"] == 10
+    assert "Reference unit" not in data["buffer"]
+    assert data["buffer"]["reference_unit"] == "uM"
+    assert "Custom solvent" not in data["buffer"]
+    assert data["buffer"]["custom_solvent"] == ""
+
+    # buffer component renames (Concentration/Unit → concentration/unit)
+    buf_comps = data["buffer"]["components"]
+    assert len(buf_comps) == 2
+    for bc in buf_comps:
+        assert "Concentration" not in bc and "Unit" not in bc
+        assert "concentration" in bc and "unit" in bc
+
+    # NMR tube renames
+    assert "Type" not in data["nmr_tube"]
+    assert data["nmr_tube"]["type"] == "shigemi"
+    assert "Sample Volume (μL)" not in data["nmr_tube"]
+    assert data["nmr_tube"]["sample_volume_uL"] == 300
+    assert "samplejet_rack_position" not in data["nmr_tube"]  # removed in 0.0.3 → 0.1.0
+    assert "samplejet_rack_id" not in data["nmr_tube"]
+    assert data["nmr_tube"]["rack_id"] == "rack-001"
+
     # diameter string gets mapped to number AND renamed to diameter_mm
     assert "diameter" not in data["nmr_tube"]
     assert data["nmr_tube"]["diameter_mm"] == 5.0
+
+    # reference field renames
+    assert "Labbook Entry" not in data["reference"]
+    assert data["reference"]["labbook_entry"] == "page 42"
+    assert "Experiment ID" not in data["reference"]
+    assert data["reference"]["sample_id"] == "EXP-2024-001"
 
 
 def test_migrate_v020_wildcard_map_and_set_hit_every_element():
@@ -150,6 +193,11 @@ def test_migrate_v020_wildcard_map_and_set_hit_every_element():
         assert c["unit"] != "equiv"
         assert "molecular_weight" in c
         assert "type" in c and c["type"] is None
+
+    # nmr_tube.diameter renamed to diameter_mm in 0.2.0 → 0.3.0
+    assert "diameter" not in data["nmr_tube"]
+    assert "diameter_mm" in data["nmr_tube"]
+    assert data["nmr_tube"]["diameter_mm"] == 5.0
 
 
 def test_migrate_v030_adds_type_to_every_component():
@@ -220,6 +268,62 @@ def test_migrate_v030_solvent_d6_dmso():
     data = _load("sample_v0.3.0_labelling_solvent.json")
     _migrate(data)
     assert data["buffer"]["solvent"] == "DMSO-d6"
+
+
+@pytest.mark.parametrize("diameter_str,expected", [
+    ("1.7 mm", 1.7),
+    ("3 mm", 3.0),
+    ("5 mm", 5.0),
+    ("", None),
+])
+def test_migrate_v003_diameter_string_to_number(diameter_str, expected):
+    data = {
+        "sample": {},
+        "nmr_tube": {"diameter": diameter_str},
+        "metadata": {"schema_version": "0.0.3"},
+    }
+    _migrate(data)
+    assert "diameter" not in data["nmr_tube"]
+    assert data["nmr_tube"]["diameter_mm"] == expected
+
+
+def test_migrate_v003_samplejet_rename_remove_and_physical_form():
+    data = {
+        "sample": {},
+        "nmr_tube": {
+            "diameter": "5 mm",
+            "samplejet_rack_id": "rack-001",
+            "samplejet_rack_position": "A3",
+        },
+        "metadata": {"schema_version": "0.0.3"},
+    }
+    _migrate(data)
+    assert data["nmr_tube"]["rack_id"] == "rack-001"
+    assert "samplejet_rack_id" not in data["nmr_tube"]
+    assert "samplejet_rack_position" not in data["nmr_tube"]
+    assert data["sample"]["physical_form"] == ""
+
+
+def test_migrate_v010_chain_migrates_to_current():
+    """A v0.1.0 document traverses 0.1.0→0.2.0→0.3.0→0.4.0 cleanly."""
+    data = {
+        "sample": {
+            "physical_form": "solution",
+            "components": [
+                {
+                    "concentration_or_amount": 1.0,
+                    "unit": "mM",
+                    "isotopic_labelling": "13C,15N",
+                },
+            ],
+        },
+        "nmr_tube": {"diameter": 5.0},
+        "metadata": {"schema_version": "0.1.0"},
+    }
+    _migrate(data)
+    _assert_current(data)
+    assert "diameter" not in data["nmr_tube"]
+    assert data["nmr_tube"]["diameter_mm"] == 5.0
 
 
 def test_migrate_v030_solvent_d4_methanol():

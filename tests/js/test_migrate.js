@@ -119,18 +119,65 @@ test("v0.0.2 multi-component: renames every key on every array entry", () => {
         assert.ok(!("Concentration" in c));
         assert.ok(!("Unit" in c));
         assert.ok(!("Isotopic labelling" in c));
+        assert.ok(!("Custom labelling" in c));
         assert.ok("name" in c);
         assert.ok("concentration_or_amount" in c);
         assert.ok("unit" in c);
         assert.ok("isotopic_labelling" in c);
+        assert.ok("custom_labelling" in c);
         assert.ok("molecular_weight" in c);
         assert.ok("type" in c);
         assert.equal(c.type, null);
     }
     for (const c of comps) assert.notEqual(c.unit, "equiv");
 
+    // sample-level renames
+    assert.ok(!("Label" in data.sample));
+    assert.equal(data.sample.label, "Test v0.0.2 with multiple components");
+    assert.equal(data.sample.physical_form, "");  // added in 0.0.3 → 0.1.0
+
+    // buffer field renames
+    assert.ok(!("pH" in data.buffer));
+    assert.equal(data.buffer.ph, 7.4);
+    assert.ok(!("Solvent" in data.buffer));
+    assert.equal(data.buffer.solvent, "10% D2O");
+    assert.ok(!("Chemical shift reference" in data.buffer));
+    assert.equal(data.buffer.chemical_shift_reference, "DSS");
+    assert.ok(!("Reference concentration" in data.buffer));
+    assert.equal(data.buffer.reference_concentration, 10);
+    assert.ok(!("Reference unit" in data.buffer));
+    assert.equal(data.buffer.reference_unit, "uM");
+    assert.ok(!("Custom solvent" in data.buffer));
+    assert.equal(data.buffer.custom_solvent, "");
+
+    // buffer component renames
+    const bufComps = data.buffer.components;
+    assert.equal(bufComps.length, 2);
+    for (const bc of bufComps) {
+        assert.ok(!("Concentration" in bc));
+        assert.ok(!("Unit" in bc));
+        assert.ok("concentration" in bc);
+        assert.ok("unit" in bc);
+    }
+
+    // NMR tube renames
+    assert.ok(!("Type" in data.nmr_tube));
+    assert.equal(data.nmr_tube.type, "shigemi");
+    assert.ok(!("Sample Volume (μL)" in data.nmr_tube));
+    assert.equal(data.nmr_tube.sample_volume_uL, 300);
+    assert.ok(!("samplejet_rack_position" in data.nmr_tube));  // removed in 0.0.3 → 0.1.0
+    assert.ok(!("samplejet_rack_id" in data.nmr_tube));
+    assert.equal(data.nmr_tube.rack_id, "rack-001");
+
+    // diameter string mapped to number AND renamed to diameter_mm
     assert.ok(!("diameter" in data.nmr_tube));
     assert.equal(data.nmr_tube.diameter_mm, 5.0);
+
+    // reference field renames
+    assert.ok(!("Labbook Entry" in data.reference));
+    assert.equal(data.reference.labbook_entry, "page 42");
+    assert.ok(!("Experiment ID" in data.reference));
+    assert.equal(data.reference.sample_id, "EXP-2024-001");
 });
 
 test("v0.2.0 multi-component: wildcard map+set hit every component", () => {
@@ -146,6 +193,11 @@ test("v0.2.0 multi-component: wildcard map+set hit every component", () => {
         assert.ok("type" in c);
         assert.equal(c.type, null);
     }
+
+    // nmr_tube.diameter renamed to diameter_mm in 0.2.0 → 0.3.0
+    assert.ok(!("diameter" in data.nmr_tube));
+    assert.ok("diameter_mm" in data.nmr_tube);
+    assert.equal(data.nmr_tube.diameter_mm, 5.0);
 });
 
 test("v0.3.0 multi-component: adds type to every component", () => {
@@ -160,6 +212,51 @@ test("v0.3.0 multi-component: adds type to every component", () => {
         assert.equal(c.type, null);
         assert.ok("molecular_weight" in c);
     }
+});
+
+for (const [diameterStr, expected] of [["1.7 mm", 1.7], ["3 mm", 3.0], ["5 mm", 5.0], ["", null]]) {
+    test(`v0.0.3 diameter "${diameterStr}" maps to ${expected}`, () => {
+        const data = {
+            sample: {},
+            nmr_tube: { diameter: diameterStr },
+            metadata: { schema_version: "0.0.3" },
+        };
+        migrate.updateToLatestSchema(data, MIGRATIONS);
+        assert.ok(!("diameter" in data.nmr_tube));
+        assert.equal(data.nmr_tube.diameter_mm, expected);
+    });
+}
+
+test("v0.0.3 samplejet rename, remove, and physical_form addition", () => {
+    const data = {
+        sample: {},
+        nmr_tube: {
+            diameter: "5 mm",
+            samplejet_rack_id: "rack-001",
+            samplejet_rack_position: "A3",
+        },
+        metadata: { schema_version: "0.0.3" },
+    };
+    migrate.updateToLatestSchema(data, MIGRATIONS);
+    assert.equal(data.nmr_tube.rack_id, "rack-001");
+    assert.ok(!("samplejet_rack_id" in data.nmr_tube));
+    assert.ok(!("samplejet_rack_position" in data.nmr_tube));
+    assert.equal(data.sample.physical_form, "");
+});
+
+test("v0.1.0 chain migrates to current", () => {
+    const data = {
+        sample: {
+            physical_form: "solution",
+            components: [{ concentration_or_amount: 1.0, unit: "mM", isotopic_labelling: "13C,15N" }],
+        },
+        nmr_tube: { diameter: 5.0 },
+        metadata: { schema_version: "0.1.0" },
+    };
+    migrate.updateToLatestSchema(data, MIGRATIONS);
+    assertCurrent(data);
+    assert.ok(!("diameter" in data.nmr_tube));
+    assert.equal(data.nmr_tube.diameter_mm, 5.0);
 });
 
 test("empty components array: wildcard ops are no-ops", () => {
