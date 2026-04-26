@@ -103,9 +103,11 @@ def _walk_and_set(obj, segments, depth, value):
             for item in obj:
                 _walk_and_set(item, segments, depth + 1, value)
     elif isinstance(obj, dict):
-        if seg not in obj or not isinstance(obj[seg], (dict, list)):
-            obj[seg] = {}
-        _walk_and_set(obj[seg], segments, depth + 1, value)
+        # With a wildcard elsewhere in the path, a missing intermediate is a
+        # silent no-op. Don't materialize empty containers that would then
+        # fail to match the wildcard anyway.
+        if seg in obj and isinstance(obj[seg], (dict, list)):
+            _walk_and_set(obj[seg], segments, depth + 1, value)
 
 
 def _apply_remove(data, op):
