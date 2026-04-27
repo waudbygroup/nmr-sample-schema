@@ -1,10 +1,10 @@
 """
 Migrate NMR sample metadata to the latest schema version.
 
-Call load_sample(path, migrations_path=MIGRATIONS_PATH[]) to load a JSON file
+Call loadsample(path, migrations_path=MIGRATIONS_PATH[]) to load a JSON file
 and apply migrations. It returns the migrated data as a Dict.
 
-Call update_to_latest_schema!(data) with a parsed JSON Dict. It modifies
+Call updatetolatestschema!(data) with a parsed JSON Dict. It modifies
 the dict in place and returns it.
 
 The migration patch file is expected at current/patch.json relative to
@@ -14,7 +14,7 @@ module SchemaMigrate
 
 using JSON
 
-const MIGRATIONS_PATH = Ref(joinpath(@__DIR__, "current", "patch.json"))
+const MIGRATIONS_PATH = Ref(joinpath(@__DIR__, "..", "current", "patch.json"))
 
 
 function _parse_path(path)
@@ -186,13 +186,13 @@ function _load_migrations(path=MIGRATIONS_PATH[])
 end
 
 """
-    update_to_latest_schema!(data, migrations_path=MIGRATIONS_PATH[]) -> Dict
+    updatetolatestschema!(data, migrations_path=MIGRATIONS_PATH[]) -> Dict
 
 Apply migrations to the given data Dict to update it to the latest schema version.
 The data is modified in place and returned. Migrations are loaded from the given
 migrations_path (default is MIGRATIONS_PATH[]).
 """
-function update_to_latest_schema!(data, migrations_path=MIGRATIONS_PATH[])
+function updatetolatestschema!(data, migrations_path=MIGRATIONS_PATH[])
     migrations = _load_migrations(migrations_path)
 
     while true
@@ -216,16 +216,16 @@ function update_to_latest_schema!(data, migrations_path=MIGRATIONS_PATH[])
 end
 
 """
-    load_sample(path, migrations_path=MIGRATIONS_PATH[]) -> Dict
+    loadsample(path, migrations_path=MIGRATIONS_PATH[]) -> Dict
 
 Load a JSON file from the given path and apply migrations to update it to the
 latest schema version. Returns the migrated data as a Dict.
 """
-function load_sample(path, migrations_path=MIGRATIONS_PATH[])
+function loadsample(path, migrations_path=MIGRATIONS_PATH[])
     data = JSON.parsefile(path; dicttype=Dict{String,Any})
-    return update_to_latest_schema!(data, migrations_path)
+    return updatetolatestschema!(data, migrations_path)
 end
 
-export update_to_latest_schema!, load_sample
+export updatetolatestschema!, loadsample
 
 end # module

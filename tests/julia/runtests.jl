@@ -13,7 +13,7 @@ const LATEST_VERSION = "0.4.0"
 const LATEST_SCHEMA_SOURCE = "https://raw.githubusercontent.com/nmr-samples/schema/main/versions/v0.4.0/schema.json"
 
 load_fixture(name) = JSON.parsefile(joinpath(FIXTURES_DIR, name); dicttype=Dict{String,Any})
-migrate!(data) = update_to_latest_schema!(data, PATCH_PATH)
+migrate!(data) = updatetolatestschema!(data, PATCH_PATH)
 
 function assert_current(data)
     @test data["metadata"]["schema_version"] == LATEST_VERSION
@@ -196,10 +196,10 @@ end
                 "physical_form" => "solution",
                 "components" => Any[
                     Dict{String,Any}(
-                        "concentration_or_amount" => 1.0,
-                        "unit" => "mM",
-                        "isotopic_labelling" => "13C,15N",
-                    ),
+                    "concentration_or_amount" => 1.0,
+                    "unit" => "mM",
+                    "isotopic_labelling" => "13C,15N",
+                ),
                 ],
             ),
             "nmr_tube" => Dict{String,Any}("diameter" => 5.0),
@@ -298,8 +298,8 @@ end
         end
     end
 
-    @testset "load_sample convenience function" begin
-        data = load_sample(joinpath(FIXTURES_DIR, "sample_v0.3.0_multi.json"), PATCH_PATH)
+    @testset "loadsample convenience function" begin
+        data = loadsample(joinpath(FIXTURES_DIR, "sample_v0.3.0_multi.json"), PATCH_PATH)
         assert_current(data)
         @test length(data["sample"]["components"]) == 3
     end
